@@ -22,7 +22,7 @@ public class StompServer{
         }
 
         else{
-            throw new IllegalArgumentException("Invalid server type");
+            throw new IllegalArgumentException ("Invalid arguments");
         }
     }
 }
