@@ -1,18 +1,23 @@
+package bgu.spl.net.srv;
+
 import java.util.Iterator;
-import java.util.LinkedList;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import bgu.spl.net.impl.stomp.StompFrame;
+
 public class ConnectionsImpl<T> implements Connections<T>{
 
-    private static volatile ConnectionsImpl<?> instance;
+    private static ConnectionsImpl<?> instance;
     private ConcurrentHashMap<Integer,ConnectionHandler<T>> connectionsMap;             // ID to Connection Handler
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer[]>> channelsMap;    // Channel name to List of ID's
+    private ConcurrentHashMap<Integer, String> activeUsers;
     private ConcurrentHashMap<String, String> loginMap;                                 // username to password
     private final ReentrantReadWriteLock lock;
-    final AtomicInteger connectionIDGenerator;                                          // Generate ID for new connections
+                                         
     
 
     public static <T> ConnectionsImpl<T> getInstance(){
@@ -21,8 +26,12 @@ public class ConnectionsImpl<T> implements Connections<T>{
                 if (instance == null){
                     instance = new ConnectionsImpl<>();
                 }
+
+                
             }
         }
+
+    
         return (ConnectionsImpl<T>) instance;
     }
 
@@ -30,7 +39,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
         this.connectionsMap = new ConcurrentHashMap<>();
         this.channelsMap = new ConcurrentHashMap<>();
         this.loginMap = new ConcurrentHashMap<>();
-        this.connectionIDGenerator = new AtomicInteger(0);
+        this.activeUsers = new ConcurrentHashMap<>();
         this.lock = new ReentrantReadWriteLock();
     }
 
@@ -68,10 +77,31 @@ public class ConnectionsImpl<T> implements Connections<T>{
         }
     }
     
+
+
+    public void connect(int connectionId, ConnectionHandler<T> handler){
+        lock.writeLock().lock();
+        connectionsMap.put(connectionId, handler);
+        lock.writeLock().unlock();       
+    }
+
     // Remove an active connection from the connectionMap
-    public void disconnect(int connectionId){
-        connectionsMap.remove(connectionId);
+    public ConnectionHandler<T> disconnect(int connectionId){
         unsubscribeChannel(connectionId);
+        synchronized(activeUsers){
+            activeUsers.remove(connectionId);
+        }
+
+        lock.writeLock().lock();
+        ConnectionHandler<T> handler = connectionsMap.get(connectionId);
+        connectionsMap.remove(connectionId);
+        lock.writeLock().unlock();
+
+
+        System.out.println(connectionsMap);
+        System.out.println(activeUsers);
+
+        return handler;
     } 
 
     private void unsubscribeChannel(int connectionId){
@@ -91,23 +121,50 @@ public class ConnectionsImpl<T> implements Connections<T>{
         }
     }
 
-    public int login(ConnectionHandler<T> handler, String userName, String password){
+    public int login(int connectionId, String userName, String password){
         synchronized(loginMap){
-            // check if user doesn't exist
+            // user doesn't exist
             if(loginMap.get(userName) == null){ 
                 loginMap.put(userName, password);          
             }
+            
+            synchronized(activeUsers){
+                boolean userLoggedIn = false;
+                for(String user : activeUsers.values()){
+                    if(user.equals(userName)){
+                        userLoggedIn = true;
+                        break;
+                    }
+                }
+                
+                if(userLoggedIn){
+                    System.out.println(connectionsMap);
+                    System.out.println(activeUsers);
+                    return -2; // User already logged in =  -2
+                }
+            }
+
             // check if user password is correct
             if(loginMap.get(userName).equals(password)){       
-                connectionsMap.put(connectionIDGenerator.get(), handler);
-                return connectionIDGenerator.incrementAndGet() - 1;
+                activeUsers.put(connectionId, userName);
+                System.out.println(connectionsMap);
+                System.out.println(activeUsers);
+                return 1; // Logged in successfully
             }
     
-            else{
-                    // return ERROR (incorrect password)
+            else{   
+                System.out.println(connectionsMap);
+                System.out.println(activeUsers);
+                return -1; // wrong password  = -1
             }
         }
-        return -1; // if login wasn't successful
+    }
+
+    public void logout(int connectionId){
+        unsubscribeChannel(connectionId);
+        synchronized(activeUsers){
+            activeUsers.remove(connectionId);
+        }
     }
 }
 
