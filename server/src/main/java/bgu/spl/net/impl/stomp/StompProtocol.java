@@ -34,11 +34,15 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
             case "SEND":
                 break;
 
-            case "SUBSCRIBE":
+            case "SUBSCRIBE":{
+                handleSubscription();
                 break;
+            }
 
-            case "UNSUBSCRIBE":
+            case "UNSUBSCRIBE":{
+                handleUnsubscription();
                 break;
+            }
 
             default:
                 break;
@@ -92,6 +96,20 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         handler.send(receiptFrame);
     }
 
+    private void handleSubscription(StompFrame message){
+        String channel = message.getHeaderMap().get("destination");
+        String subscriptionID = message.getHeaderMap().get("id");
+
+        connections.subsribe(channel, subscriptionID, connectionId);
+        //StompFrame subscriptionReceipt = new StompFrame("RECEIPT", "subscribed successfully");
+
+    }
+
+    private void handleUnsubscription(StompFrame message){
+
+    }
+   
+   
     public boolean shouldTerminate() {
         return shouldTerminate;
 

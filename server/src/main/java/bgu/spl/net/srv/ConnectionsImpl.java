@@ -160,11 +160,19 @@ public class ConnectionsImpl<T> implements Connections<T>{
         }
     }
 
-    public void logout(int connectionId){
-        unsubscribeChannel(connectionId);
-        synchronized(activeUsers){
-            activeUsers.remove(connectionId);
+    public void subsribe(String channel, Integer subscriptionId, Integer connectionId){
+        lock.writeLock().lock();
+        if (channelsMap.get(channel) != null){
+            ConcurrentLinkedQueue<Integer[]> currentChannel = channelsMap.get(channel);
+            for (Integer[] keys : currentChannel){
+                if (keys[0] == connectionId){
+                    return;
+                }
+            }
+            Integer[] subscription = {connectionId,subscriptionId};
+            currentChannel.add(subscription);
         }
+        lock.writeLock().unlock();
     }
 }
 
