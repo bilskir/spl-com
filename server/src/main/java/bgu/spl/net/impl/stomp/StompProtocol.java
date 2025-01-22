@@ -101,7 +101,11 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
 
     private void handleSubscription(StompFrame message){
         String channel = message.getHeaderMap().get("destination");
+        System.out.println(channel);
+        String receipt = message.getHeaderMap().get("receipt");
         String subscriptionID = message.getHeaderMap().get("id");
+
+
 
         int result = connections.subscribe(channel, Integer.parseInt(subscriptionID), connectionId);
         
@@ -112,11 +116,23 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
             connections.send(this.connectionId, errorFrame);
         }
 
+        else{
+            StompFrame receiptFrame = new StompFrame("RECEIPT","");
+            receiptFrame.addHeader("receipt-id", receipt);
+            connections.send(this.connectionId, receiptFrame);
+        }
+
     }
 
     private void handleUnsubscription(StompFrame message){
         String subscriptionID = message.getHeaderMap().get("id");
+        String receipt = message.getHeaderMap().get("receipt");
+
         connections.unsubscribe(connectionId, Integer.parseInt(subscriptionID));
+
+        StompFrame receiptFrame = new StompFrame("RECEIPT","");
+        receiptFrame.addHeader("receipt-id", receipt);
+        connections.send(this.connectionId, receiptFrame);
     }
    
 
@@ -133,18 +149,20 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
                 StompFrame newMessage = new StompFrame("MESSAGE", originalMessage.getBody());
                 newMessage.addHeader("id", Integer.toString(id));
                 return newMessage;
-            }, connectionId);
+            }, this.connectionId);
     
             if(result == -1){
                 StompFrame errorFrame = new StompFrame("ERROR", "The Client is not subscribed to the given channel");
                 errorFrame.addHeader("message", "Cannot send message");
                 connections.send(this.connectionId, errorFrame);
             }
+            else{
+                System.out.println("done");
+            }
         }
         
     }
 
-   
     public boolean shouldTerminate() {
         return shouldTerminate;
 

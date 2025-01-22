@@ -65,6 +65,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
         try{
             // Check if Client not subscribed to the channel
             if(!checkIfSubscribed(channel, connectionID)){
+                System.out.println("KAKA ANAK");
                 return -1;
             }
 
@@ -174,7 +175,14 @@ public class ConnectionsImpl<T> implements Connections<T>{
             return 1;
 
         } finally {
-            System.out.println(channelsMap);
+            for (String c : channelsMap.keySet()){
+                System.out.print(c + ": ");
+                for (Integer[] ids : channelsMap.get(c)){
+                    System.out.print("("+ ids[0] + " " + ids[1] + ")" + ", ");
+                }
+
+                System.out.println("");
+            }
             lock.writeLock().unlock();
         }        
     }
@@ -202,9 +210,10 @@ public class ConnectionsImpl<T> implements Connections<T>{
     }
 
     private boolean checkIfSubscribed(String channel, int connectionId){
+        System.err.println("ConnectionID :" + connectionId + " , Channel :" + channel);
         ConcurrentLinkedQueue<Integer[]> subscribers = channelsMap.get(channel);
         if(subscribers != null){
-            for(Integer[] ID : channelsMap.get(channel)){
+            for(Integer[] ID : subscribers){
                 if(ID[0] == connectionId){
                     return true;
                 }
