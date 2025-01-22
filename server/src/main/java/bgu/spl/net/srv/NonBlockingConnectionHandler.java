@@ -63,14 +63,11 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             buf.flip();
             return () -> {
                 try {
+                    protocol.start(ID, ConnectionsImpl.getInstance() , this);
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
                             protocol.process(nextMessage);
-                            // if (response != null) {
-                            //     writeQueue.add(ByteBuffer.wrap(encdec.encode(response)));
-                            //     reactor.updateInterestedOps(chan, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                            // }
                         }
                     }
                 } finally {
@@ -141,6 +138,6 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
 
     @Override
     public int getID() {
-        return this.
+        return this.ID;
     }
 }

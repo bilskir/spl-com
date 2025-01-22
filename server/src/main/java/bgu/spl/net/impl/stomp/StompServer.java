@@ -8,21 +8,22 @@ public class StompServer{
     public static void main(String[] args) {
 
         final int NUMBER_OF_THREADS = 7;
-         if(args[1] == "tpc"){
-            //open tpc instance
+        //  if(args[1] == "tpc"){
+        //     //open tpc instance
             
-            Server.threadPerClient(Integer.parseInt(args[0]),
-            () -> new StompProtocol(),
-            () -> new StompEncoderDecoder()).serve();
-        }
+        //     Server.threadPerClient(Integer.parseInt(args[0]),
+        //     () -> new StompProtocol(),
+        //     () -> new StompEncoderDecoder()).serve();
+        // }
 
-        else if(args[1] == "reactor"){
+        // else if(args[1] == "reactor"){
             //open reactor server
+            System.out.println("kaka");
             Server.reactor(NUMBER_OF_THREADS,
             Integer.parseInt(args[0]),
             () -> new StompProtocol(),
             () -> new StompEncoderDecoder()).serve();
-         }
+        //  }
 
         // else{
         //     throw new IllegalArgumentException ("Invalid arguments");
