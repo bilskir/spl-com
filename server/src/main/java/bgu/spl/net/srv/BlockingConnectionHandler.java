@@ -3,14 +3,18 @@ package bgu.spl.net.srv;
 import bgu.spl.net.api.MessageEncoderDecoder;
 import bgu.spl.net.api.MessagingProtocol;
 import bgu.spl.net.api.StompMessagingProtocol;
+import bgu.spl.net.impl.stomp.StompFrame;
+import bgu.spl.net.impl.stomp.StompProtocol;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler<T> {
-
+    private static AtomicInteger connectionID = new AtomicInteger(0);
+    private final int ID;
     private final StompMessagingProtocol<T> protocol;
     private final MessageEncoderDecoder<T> encdec;
     private final Socket sock;
@@ -22,6 +26,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
         this.sock = sock;
         this.encdec = reader;
         this.protocol = protocol;
+        this.ID = connectionID.incrementAndGet();
     }
 
 
@@ -33,14 +38,11 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
             in = new BufferedInputStream(sock.getInputStream());
             out = new BufferedOutputStream(sock.getOutputStream());
 
+            protocol.start(ID, ConnectionsImpl.getInstance() , this);
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
                 T nextMessage = encdec.decodeNextByte((byte) read);
                 if (nextMessage != null) {
-                    T response = protocol.process(nextMessage);
-                    if (response != null) {
-                        out.write(encdec.encode(response));
-                        out.flush();
-                    }
+                    protocol.process(nextMessage);
                 }
             }
 
@@ -58,6 +60,16 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
     @Override
     public void send(T msg) {
-        //IMPLEMENT IF NEEDED
+        try {
+            out.write(encdec.encode(msg));
+            out.flush();
+        } catch (IOException e) {
+            // TODO: handle exception
+        }
+       
+    }
+
+    public int getID() {
+        return ID;
     }
 }
