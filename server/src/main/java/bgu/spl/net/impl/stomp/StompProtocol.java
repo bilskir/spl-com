@@ -31,18 +31,21 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
                 break;
             }
 
-            case "SEND":
-                break;
-
             case "SUBSCRIBE":{
-                handleSubscription();
+                handleSubscription(message);
                 break;
             }
 
             case "UNSUBSCRIBE":{
-                handleUnsubscription();
+                handleUnsubscription(message);
                 break;
             }
+
+            case "SEND":{
+                handleSend(message);
+                break;
+            }
+
 
             default:
                 break;
@@ -100,15 +103,47 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         String channel = message.getHeaderMap().get("destination");
         String subscriptionID = message.getHeaderMap().get("id");
 
-        connections.subsribe(channel, subscriptionID, connectionId);
-        //StompFrame subscriptionReceipt = new StompFrame("RECEIPT", "subscribed successfully");
+        int result = connections.subscribe(channel, Integer.parseInt(subscriptionID), connectionId);
+        
+        // Client Couldn't subscribe
+        if(result == -1){
+            StompFrame errorFrame = new StompFrame("ERROR", "");
+            errorFrame.addHeader("message", "Use already subscribed to this channel");
+            connections.send(this.connectionId, errorFrame);
+        }
 
     }
 
     private void handleUnsubscription(StompFrame message){
-
+        String subscriptionID = message.getHeaderMap().get("id");
+        connections.unsubscribe(connectionId, Integer.parseInt(subscriptionID));
     }
    
+
+    private void handleSend(StompFrame message){
+        String channel = message.getHeaderMap().get("destination");
+        
+        if(channel == null){
+            StompFrame errorFrame = new StompFrame("ERROR", "The Message:\n----\n" + message.getCommand() + "\n" + message.getHeaderMap() + "\n "+ message.getBody() + "\n" + "Did not contain a destination header\nwhich is REQUIRED for message propagation.");
+            errorFrame.addHeader("message", "malformed frame received");
+            connections.send(this.connectionId, errorFrame);
+        }
+        else{
+            int result = connections.send(channel, message, (originalMessage ,id) -> {
+                StompFrame newMessage = new StompFrame("MESSAGE", originalMessage.getBody());
+                newMessage.addHeader("id", Integer.toString(id));
+                return newMessage;
+            }, connectionId);
+    
+            if(result == -1){
+                StompFrame errorFrame = new StompFrame("ERROR", "The Client is not subscribed to the given channel");
+                errorFrame.addHeader("message", "Cannot send message");
+                connections.send(this.connectionId, errorFrame);
+            }
+        }
+        
+    }
+
    
     public boolean shouldTerminate() {
         return shouldTerminate;

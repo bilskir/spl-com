@@ -7,31 +7,27 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import bgu.spl.net.api.MessageTransformer;
 import bgu.spl.net.impl.stomp.StompFrame;
 
 public class ConnectionsImpl<T> implements Connections<T>{
 
     private static ConnectionsImpl<?> instance;
-    private ConcurrentHashMap<Integer,ConnectionHandler<T>> connectionsMap;             // ID to Connection Handler
-    private ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer[]>> channelsMap;    // Channel name to List of ID's
-    private ConcurrentHashMap<Integer, String> activeUsers;
-    private ConcurrentHashMap<String, String> loginMap;                                 // username to password
+    private ConcurrentHashMap<Integer,ConnectionHandler<T>> connectionsMap; // ID to Connection Handler
+    private ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer[]>> channelsMap; // Channel name to List of ID's
+    private ConcurrentHashMap<Integer, String> activeUsers; // ID to usernames
+    private ConcurrentHashMap<String, String> loginMap; // username to password
     private final ReentrantReadWriteLock lock;
                                          
-    
-
     public static <T> ConnectionsImpl<T> getInstance(){
         if (instance == null){
             synchronized(ConnectionsImpl.class){
                 if (instance == null){
                     instance = new ConnectionsImpl<>();
                 }
-
-                
             }
         }
 
-    
         return (ConnectionsImpl<T>) instance;
     }
 
@@ -49,8 +45,9 @@ public class ConnectionsImpl<T> implements Connections<T>{
         if(connectionsMap.get(connectionId) != null){
             lock.readLock().lock();
             try{
-                if(connectionsMap.get(connectionId) != null){
-                    connectionsMap.get(connectionId).send(message);
+                ConnectionHandler<T> handler = connectionsMap.get(connectionId);
+                if(handler != null){
+                    handler.send(message);
                     return true;
                 }
             }
@@ -59,26 +56,39 @@ public class ConnectionsImpl<T> implements Connections<T>{
             }
             
         }
-
         return false;
     }
 
     // Send the message for each active connection that subscribed to this specific channel
-    public void send(String channel, T message){
+    public int send(String channel, T message, MessageTransformer<T> transformer, int connectionID){
         lock.readLock().lock();
         try{
-            for(Integer[] ID : channelsMap.get(channel)){
-                if (connectionsMap.get(ID[0]) != null){
-                    connectionsMap.get(ID[0]).send(message);
+            // Check if Client not subscribed to the channel
+            if(!checkIfSubscribed(channel, connectionID)){
+                return -1;
+            }
+
+            else{
+                ConcurrentLinkedQueue<Integer[]> subscribers = channelsMap.get(channel);
+                if(subscribers != null){
+                    for(Integer[] ID : channelsMap.get(channel)){
+                        ConnectionHandler<T> handler = connectionsMap.get(ID[0]);
+                        if (handler != null){
+                            // Use transfromer to make protocol flexible
+                            T newMessage = transformer.transformMessage(message, ID[1]);
+                            System.out.println("message sent to " + activeUsers.get(connectionID));
+                            handler.send(newMessage);
+                        }
+                    } 
                 }
-            } 
+
+                return 1;
+            }
         } finally{
             lock.readLock().unlock();  
         }
     }
     
-
-
     public void connect(int connectionId, ConnectionHandler<T> handler){
         lock.writeLock().lock();
         connectionsMap.put(connectionId, handler);
@@ -96,11 +106,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
         ConnectionHandler<T> handler = connectionsMap.get(connectionId);
         connectionsMap.remove(connectionId);
         lock.writeLock().unlock();
-
-
-        System.out.println(connectionsMap);
-        System.out.println(activeUsers);
-
         return handler;
     } 
 
@@ -138,41 +143,74 @@ public class ConnectionsImpl<T> implements Connections<T>{
                 }
                 
                 if(userLoggedIn){
-                    System.out.println(connectionsMap);
-                    System.out.println(activeUsers);
                     return -2; // User already logged in =  -2
                 }
             }
 
             // check if user password is correct
             if(loginMap.get(userName).equals(password)){       
-                activeUsers.put(connectionId, userName);
-                System.out.println(connectionsMap);
-                System.out.println(activeUsers);
+                activeUsers.put(connectionId, userName);   
                 return 1; // Logged in successfully
             }
     
             else{   
-                System.out.println(connectionsMap);
-                System.out.println(activeUsers);
                 return -1; // wrong password  = -1
             }
         }
     }
 
-    public void subsribe(String channel, Integer subscriptionId, Integer connectionId){
+    public int subscribe(String channel, Integer subscriptionId, Integer connectionId){
         lock.writeLock().lock();
-        if (channelsMap.get(channel) != null){
+        try {
+            channelsMap.computeIfAbsent(channel, k -> new ConcurrentLinkedQueue<>());
             ConcurrentLinkedQueue<Integer[]> currentChannel = channelsMap.get(channel);
             for (Integer[] keys : currentChannel){
                 if (keys[0] == connectionId){
-                    return;
+                    return -1;
                 }
             }
-            Integer[] subscription = {connectionId,subscriptionId};
-            currentChannel.add(subscription);
+
+            currentChannel.add(new Integer[]{connectionId,subscriptionId});
+            return 1;
+
+        } finally {
+            System.out.println(channelsMap);
+            lock.writeLock().unlock();
+        }        
+    }
+
+    public void unsubscribe(int connectionId, int subscriptionID) {
+        lock.writeLock().lock();
+        try{
+            Iterator<ConcurrentLinkedQueue<Integer[]>> channelIter = channelsMap.values().iterator();
+            while(channelIter.hasNext()){
+                ConcurrentLinkedQueue<Integer[]> channel = channelIter.next();
+                Iterator<Integer[]> subscribersIter = channel.iterator();
+                while(subscribersIter.hasNext()){
+                    Integer[] subscriber = subscribersIter.next();
+                    if(subscriber[0] == connectionId && subscriber[1] == subscriptionID){
+                        subscribersIter.remove();
+                        return;
+                    }
+
+                } 
+            }
+        } finally {
+            System.out.println(channelsMap);
+            lock.writeLock().unlock();
+        }        
+    }
+
+    private boolean checkIfSubscribed(String channel, int connectionId){
+        ConcurrentLinkedQueue<Integer[]> subscribers = channelsMap.get(channel);
+        if(subscribers != null){
+            for(Integer[] ID : channelsMap.get(channel)){
+                if(ID[0] == connectionId){
+                    return true;
+                }
+            }
         }
-        lock.writeLock().unlock();
+        return false;
     }
 }
 
