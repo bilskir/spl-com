@@ -145,9 +145,11 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
             connections.send(this.connectionId, errorFrame);
         }
         else{
-            int result = connections.send(channel, message, (originalMessage ,id) -> {
+            int result = connections.send(channel, message, (originalMessage ,id, messageID) -> {
                 StompFrame newMessage = new StompFrame("MESSAGE", originalMessage.getBody());
-                newMessage.addHeader("id", Integer.toString(id));
+                newMessage.addHeader("destination", originalMessage.getHeaderMap().get("destination"));
+                newMessage.addHeader("message-id", Integer.toString(messageID));
+                newMessage.addHeader("subscription", Integer.toString(id));
                 return newMessage;
             }, this.connectionId);
     

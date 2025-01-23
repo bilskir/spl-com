@@ -11,7 +11,7 @@ import bgu.spl.net.api.MessageTransformer;
 import bgu.spl.net.impl.stomp.StompFrame;
 
 public class ConnectionsImpl<T> implements Connections<T>{
-
+    private static AtomicInteger messageID = new AtomicInteger(0);
     private static ConnectionsImpl<?> instance;
     private ConcurrentHashMap<Integer,ConnectionHandler<T>> connectionsMap; // ID to Connection Handler
     private ConcurrentHashMap<String, ConcurrentLinkedQueue<Integer[]>> channelsMap; // Channel name to List of ID's
@@ -65,7 +65,6 @@ public class ConnectionsImpl<T> implements Connections<T>{
         try{
             // Check if Client not subscribed to the channel
             if(!checkIfSubscribed(channel, connectionID)){
-                System.out.println("KAKA ANAK");
                 return -1;
             }
 
@@ -76,8 +75,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
                         ConnectionHandler<T> handler = connectionsMap.get(ID[0]);
                         if (handler != null){
                             // Use transfromer to make protocol flexible
-                            T newMessage = transformer.transformMessage(message, ID[1]);
-                            System.out.println("message sent to " + activeUsers.get(connectionID));
+                            T newMessage = transformer.transformMessage(message, ID[1], messageID.incrementAndGet());
                             handler.send(newMessage);
                         }
                     } 
@@ -175,14 +173,14 @@ public class ConnectionsImpl<T> implements Connections<T>{
             return 1;
 
         } finally {
-            for (String c : channelsMap.keySet()){
-                System.out.print(c + ": ");
-                for (Integer[] ids : channelsMap.get(c)){
-                    System.out.print("("+ ids[0] + " " + ids[1] + ")" + ", ");
-                }
+            // for (String c : channelsMap.keySet()){
+            //     System.out.print(c + ": ");
+            //     for (Integer[] ids : channelsMap.get(c)){
+            //         System.out.print("("+ ids[0] + " " + ids[1] + ")" + ", ");
+            //     }
 
-                System.out.println("");
-            }
+            //     System.out.println("");
+            // }
             lock.writeLock().unlock();
         }        
     }

@@ -55,12 +55,14 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
     @Override
     public void close() throws IOException {
         connected = false;
+        // protocol.close();
         sock.close();
     }
 
     @Override
     public void send(T msg) {
         try {
+            System.out.println(msg.toString());
             out.write(encdec.encode(msg));
             out.flush();
         } catch (IOException e) {

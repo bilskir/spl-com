@@ -53,4 +53,19 @@ public class StompFrame implements Serializable{
     public String getBody() {
         return body;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(this.command+"\n");
+        for(String key : this.headerMap.keySet()){
+            str.append(key + ":" + this.headerMap.get(key) +"\n");
+        }
+
+        str.append("\n");
+
+        str.append(this.body);
+
+        return str.toString();
+    }
 }
