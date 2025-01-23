@@ -2,6 +2,8 @@
 
 #include <string>
 #include <iostream>
+#include "StompProtocol.h"
+#include "StompEncoderDecoder.h"
 #include <boost/asio.hpp>
 
 using boost::asio::ip::tcp;
@@ -12,6 +14,8 @@ private:
 	const short port_;
 	boost::asio::io_service io_service_;   // Provides core I/O functionality
 	tcp::socket socket_;
+	const StompProtocol protocol;
+	const StompEncoderDecoder encDec;
 
 public:
 	ConnectionHandler(std::string host, short port);
@@ -47,5 +51,7 @@ public:
 
 	// Close down the connection properly.
 	void close();
+
+	// operator();
 
 }; //class ConnectionHandler

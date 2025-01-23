@@ -84,6 +84,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
 
     public void close() {
         try {
+            ConnectionsImpl.getInstance().removeUser(ID);
             chan.close();
         } catch (IOException ex) {
             ex.printStackTrace();
