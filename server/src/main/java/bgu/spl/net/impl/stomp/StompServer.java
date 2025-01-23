@@ -6,7 +6,6 @@ import bgu.spl.net.srv.Server;
 
 public class StompServer{
     public static void main(String[] args) {
-        final int NUMBER_OF_THREADS = 7;
          if(args[1].equals("tpc")){
             //open tpc instance
             System.out.println("pipi");
@@ -18,7 +17,7 @@ public class StompServer{
         else if(args[1].equals("reactor") ){
             //open reactor server
             System.out.println("kaka");
-            Server.reactor(NUMBER_OF_THREADS,
+            Server.reactor(Runtime. getRuntime().availableProcessors(),
             Integer.parseInt(args[0]),
             () -> new StompProtocol(),
             () -> new StompEncoderDecoder()).serve();

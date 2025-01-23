@@ -65,7 +65,7 @@ public class Reactor<T> implements Server<T> {
                         handleReadWrite(key);
                     }
                 }
-
+                
                 selector.selectedKeys().clear(); //clear the selected keys set so that we can know about new events
 
             }
