@@ -3,6 +3,15 @@
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
         "*.ejs": "html",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "*.tcc": "cpp",
+        "any": "cpp",
+        "optional": "cpp",
+        "variant": "cpp",
+        "thread": "cpp",
+        "string": "cpp",
+        "coroutine": "cpp",
+        "ostream": "cpp",
+        "iostream": "cpp"
     }
 }

@@ -12,6 +12,8 @@ class StompProtocol
         ConnectionHandler _ch;
         bool _isConnected;
         bool _isLoggedIn;
+        int receiptId;
+        int logoutReceiptId;
 
         
     public:

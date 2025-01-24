@@ -6,12 +6,6 @@
 #include <vector>
 #include "../include/StompProtocol.h"
 
-
-
-
-
-
-
 int main(int argc, char *argv[]) {
     StompProtocol protocol;
     std::string command;
