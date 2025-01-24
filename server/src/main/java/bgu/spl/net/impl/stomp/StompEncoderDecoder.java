@@ -13,7 +13,7 @@ public class StompEncoderDecoder implements MessageEncoderDecoder<StompFrame> {
     }
 
     public StompFrame decodeNextByte(byte nextByte) {
-        System.out.println((char)nextByte);
+        // System.out.println((char)nextByte);
         if (nextByte == '\u0000') {
             return makeFrame();
         }
@@ -45,7 +45,7 @@ public class StompEncoderDecoder implements MessageEncoderDecoder<StompFrame> {
     private StompFrame makeFrame() {
         String StompMessage = new String(bytes, 0 ,len  , StandardCharsets.UTF_8);
         
-        System.out.println("--- TEST MESSAGE --- \n" + StompMessage + "\n --- END TEST --- \n");
+        // System.out.println("--- TEST MESSAGE --- \n" + StompMessage + "\n --- END TEST --- \n");
         String[] arr = StompMessage.split("\n\n");
         String[] content = arr[0].split("\n");
         String command = content[0];

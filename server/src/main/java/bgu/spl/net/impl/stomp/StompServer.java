@@ -8,7 +8,7 @@ public class StompServer{
     public static void main(String[] args) {
          if(args[1].equals("tpc")){
             //open tpc instance
-            System.out.println("pipi");
+            System.out.println("tpc");
             Server.threadPerClient(Integer.parseInt(args[0]),
             () -> new StompProtocol(),
             () -> new StompEncoderDecoder()).serve();
@@ -16,7 +16,7 @@ public class StompServer{
 
         else if(args[1].equals("reactor") ){
             //open reactor server
-            System.out.println("kaka");
+            System.out.println("reactor");
             Server.reactor(Runtime. getRuntime().availableProcessors(),
             Integer.parseInt(args[0]),
             () -> new StompProtocol(),
