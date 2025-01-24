@@ -7,7 +7,9 @@ using std::cerr;
 using std::endl;
 using std::string;
 
-ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),socket_(io_service_), protocol(StompProtocol()), encDec(StompEncoderDecoder()) {}
+ConnectionHandler::ConnectionHandler() : host_(),port_(-1), io_service_(), socket_(io_service_){}
+ConnectionHandler::ConnectionHandler(string host, short port) : host_(host), port_(port), io_service_(),socket_(io_service_) {}
+
 
 ConnectionHandler::~ConnectionHandler() {
 	close();
@@ -105,11 +107,13 @@ void ConnectionHandler::close() {
 	}
 }
 
-ConnectionHandler::operator(){
-
-	while(!protocol.shouldTerminate())
+void ConnectionHandler::setHost(const std::string& host) {
+	this->host_ = host;
 }
 
+void ConnectionHandler::setPort(short port) {
+	this->port_ = port;
+}
 
 /*
 
