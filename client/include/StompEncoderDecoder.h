@@ -1,4 +1,0 @@
-class StompEncoderDecoder{
-    private:
-        
-}

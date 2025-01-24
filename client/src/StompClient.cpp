@@ -4,6 +4,8 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include "../include/StompProtocol.h"
+
 
 
 
@@ -11,55 +13,19 @@
 
 
 int main(int argc, char *argv[]) {
-	 if (argc < 3) {
-        std::cerr << "Usage: " << argv[0] << " host port" << std::endl << std::endl;
-        return -1;
-    }
-    std::string host = argv[1];
-    short port = atoi(argv[2]);
-    
-    ConnectionHandler connectionHandler(host, port);
-    if (!connectionHandler.connect()) {
-        std::cerr << "Cannot connect to " << host << ":" << port << std::endl;
-        return 1;
-    }
-	
-    while(1){
-
-        std::string s;
-        vector<string> v;
-
-        std::string command = cin.getline();
-        
-        while(getline(command,s,' ')){
-            v.push_back(s);
+    StompProtocol protocol;
+    std::string command;
+    while(!protocol.shouldTerminate()){
+        std::getline(std::cin, command);
+        if(!command.empty()){
+            protocol.proccess(command);
         }
-
-        std::cout << v << endl;
-
-        
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
     return 0;
 }
+
+
+
 
 
 
