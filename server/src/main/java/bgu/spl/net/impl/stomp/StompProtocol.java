@@ -20,6 +20,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
 
     @Override
     public void process(StompFrame message) {
+        // System.out.println(message.toString());
         switch (message.getCommand()) {
             case "CONNECT":{
                 handleConnection(message);
@@ -60,7 +61,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         // Password incorrect
         if(res == -1){
             // Create ERROR frame
-            System.out.println("wrong password");          
+            // System.out.println("wrong password");          
             StompFrame errorFrame = new StompFrame("ERROR","");
             errorFrame.addHeader("message", "wrong password");
             connections.send(this.connectionId, errorFrame);
@@ -70,7 +71,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         // User already logged in
         else if(res == -2){
             // Create Error frame
-            System.out.println("user already logged in");
+            // System.out.println("user already logged in");
             StompFrame errorFrame = new StompFrame("ERROR","");
             errorFrame.addHeader("message", "user already logged in");
             connections.send(this.connectionId, errorFrame);
@@ -80,7 +81,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         // Logged in successfully
         else{
             StompFrame connectedFrame = new StompFrame("CONNECTED", "");
-            System.out.println("success");
+            // System.out.println("success");
             connectedFrame.addHeader("version", "1.2");
             connections.send(this.connectionId, connectedFrame);
         }
@@ -101,7 +102,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
 
     private void handleSubscription(StompFrame message){
         String channel = message.getHeaderMap().get("destination");
-        System.out.println(channel);
+        // System.out.println(channel);
         String receipt = message.getHeaderMap().get("receipt");
         String subscriptionID = message.getHeaderMap().get("id");
 
@@ -112,7 +113,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
         // Client Couldn't subscribe
         if(result == -1){
             StompFrame errorFrame = new StompFrame("ERROR", "");
-            errorFrame.addHeader("message", "Use already subscribed to this channel");
+            errorFrame.addHeader("message", "User already subscribed to this channel");
             connections.send(this.connectionId, errorFrame);
         }
 
@@ -159,7 +160,7 @@ public class StompProtocol implements StompMessagingProtocol<StompFrame> {
                 connections.send(this.connectionId, errorFrame);
             }
             else{
-                System.out.println("done");
+                // System.out.println("done");
             }
         }
         

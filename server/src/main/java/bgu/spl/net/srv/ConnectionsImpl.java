@@ -149,8 +149,8 @@ public class ConnectionsImpl<T> implements Connections<T>{
             // check if user password is correct
             if(loginMap.get(userName).equals(password)){       
                 activeUsers.put(connectionId, userName);   
-                System.out.println(activeUsers);
-                printChannelMap();
+                // System.out.println(activeUsers);
+                // printChannelMap();
                 return 1; // Logged in successfully
             }
     
@@ -175,7 +175,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
             return 1;
 
         } finally {
-            printChannelMap();
+            // printChannelMap();
             lock.writeLock().unlock();
         }        
     }
@@ -197,7 +197,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
                 } 
             }
         } finally {
-            System.out.println(channelsMap);
+            // System.out.println(channelsMap);
             lock.writeLock().unlock();
         }        
     }
@@ -218,9 +218,9 @@ public class ConnectionsImpl<T> implements Connections<T>{
         synchronized(activeUsers){
             activeUsers.remove(connectionId);
         }
-        System.out.println(activeUsers);
+        // System.out.println(activeUsers);
         unsubscribeChannel(connectionId);
-        printChannelMap();
+        // printChannelMap();
     }
 
     public void printChannelMap(){
