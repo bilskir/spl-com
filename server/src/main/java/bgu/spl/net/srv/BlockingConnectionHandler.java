@@ -40,12 +40,17 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
 
             protocol.start(ID, ConnectionsImpl.getInstance() , this);
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
+               
                 T nextMessage = encdec.decodeNextByte((byte) read);
+                
                 if (nextMessage != null) {
+                    // System.out.println("KAKAKAKAKAKAKKA");
+                    // System.out.println(((StompFrame) nextMessage).toString());
+                    // System.out.println("KAKAKAKAKAKAKKA");
                     protocol.process(nextMessage);
                 }
             }
-            
+
             close();
         } catch (IOException ex) {
             ex.printStackTrace();

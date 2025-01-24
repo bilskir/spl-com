@@ -1,5 +1,6 @@
 package bgu.spl.net.impl.stomp;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import bgu.spl.net.api.MessageEncoderDecoder;
@@ -12,6 +13,7 @@ public class StompEncoderDecoder implements MessageEncoderDecoder<StompFrame> {
     }
 
     public StompFrame decodeNextByte(byte nextByte) {
+        // System.out.println((char)nextByte);
         if (nextByte == '\u0000') {
             return makeFrame();
         }
@@ -36,15 +38,22 @@ public class StompEncoderDecoder implements MessageEncoderDecoder<StompFrame> {
             bytes = Arrays.copyOf(bytes, len * 2);
         }
 
-        bytes[len++] = nextByte;
+        bytes[len] = nextByte;
+        len++;
     }
 
     private StompFrame makeFrame() {
-        String StompMessage = new String(bytes);
+        String StompMessage = new String(bytes, 0 ,len  , StandardCharsets.UTF_8);
+        
+        // System.out.println("--- TEST MESSAGE --- \n" + StompMessage + "\n --- END TEST --- \n");
         String[] arr = StompMessage.split("\n\n");
         String[] content = arr[0].split("\n");
         String command = content[0];
-        String body = arr[1];
+        String body = "";
+        
+        if(arr.length > 1){
+            body = arr[1];
+        }
 
         StompFrame frame = new StompFrame(command, body);
 
@@ -54,7 +63,7 @@ public class StompEncoderDecoder implements MessageEncoderDecoder<StompFrame> {
             frame.addHeader(key, val);
         }
 
-    
+       
         len = 0;
         return frame;
     }
