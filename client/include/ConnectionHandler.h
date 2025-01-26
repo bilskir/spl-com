@@ -6,11 +6,12 @@
 
 using boost::asio::ip::tcp;
 
-class ConnectionHandler {
+class ConnectionHandler
+{
 private:
 	std::string host_;
 	short port_;
-	boost::asio::io_service io_service_;   // Provides core I/O functionality
+	boost::asio::io_service io_service_; // Provides core I/O functionality
 	tcp::socket socket_;
 
 public:
@@ -55,4 +56,4 @@ public:
 
 	// operator();
 
-}; //class ConnectionHandler
+}; // class ConnectionHandler
