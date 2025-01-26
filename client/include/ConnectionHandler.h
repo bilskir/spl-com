@@ -52,6 +52,7 @@ public:
 	void setHost(const std::string &host);
 
 	void setPort(short port);
+	
 
 	// operator();
 

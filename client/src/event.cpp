@@ -153,4 +153,3 @@ names_and_events parseEventsFile(std::string json_path)
 
     return events_and_names;
 }
-
