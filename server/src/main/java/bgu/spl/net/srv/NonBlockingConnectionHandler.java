@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
 
-    private static final int BUFFER_ALLOCATION_SIZE = 1 << 13; //8k
+    private static final int BUFFER_ALLOCATION_SIZE = 1 << 13; // 8k
     private static final ConcurrentLinkedQueue<ByteBuffer> BUFFER_POOL = new ConcurrentLinkedQueue<>();
 
     private static AtomicInteger connectionID = new AtomicInteger(0);
@@ -25,16 +25,15 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
     private final Reactor reactor;
     private final int ID;
 
-
     /*
      * private static AtomicInteger connectionID = new AtomicInteger(0);
-    private final int ID;
-    private final StompMessagingProtocol<T> protocol;
-    private final MessageEncoderDecoder<T> encdec;
-    private final Socket sock;
-    private BufferedInputStream in;
-    private BufferedOutputStream out;
-    private volatile boolean connected = true;
+     * private final int ID;
+     * private final StompMessagingProtocol<T> protocol;
+     * private final MessageEncoderDecoder<T> encdec;
+     * private final Socket sock;
+     * private BufferedInputStream in;
+     * private BufferedOutputStream out;
+     * private volatile boolean connected = true;
      */
 
     public NonBlockingConnectionHandler(
@@ -63,7 +62,7 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
             buf.flip();
             return () -> {
                 try {
-                    protocol.start(ID, ConnectionsImpl.getInstance() , this);
+                    protocol.start(ID, ConnectionsImpl.getInstance(), this);
                     while (buf.hasRemaining()) {
                         T nextMessage = encdec.decodeNextByte(buf.get());
                         if (nextMessage != null) {
@@ -112,8 +111,10 @@ public class NonBlockingConnectionHandler<T> implements ConnectionHandler<T> {
         }
 
         if (writeQueue.isEmpty()) {
-            if (protocol.shouldTerminate()) close();
-            else reactor.updateInterestedOps(chan, SelectionKey.OP_READ);
+            if (protocol.shouldTerminate())
+                close();
+            else
+                reactor.updateInterestedOps(chan, SelectionKey.OP_READ);
         }
     }
 

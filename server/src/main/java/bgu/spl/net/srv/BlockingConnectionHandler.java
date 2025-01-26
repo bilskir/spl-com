@@ -29,24 +29,20 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
         this.ID = connectionID.incrementAndGet();
     }
 
-
     @Override
     public void run() {
-        try (Socket sock = this.sock) { //just for automatic closing
+        try (Socket sock = this.sock) { // just for automatic closing
             int read;
 
             in = new BufferedInputStream(sock.getInputStream());
             out = new BufferedOutputStream(sock.getOutputStream());
 
-            protocol.start(ID, ConnectionsImpl.getInstance() , this);
+            protocol.start(ID, ConnectionsImpl.getInstance(), this);
             while (!protocol.shouldTerminate() && connected && (read = in.read()) >= 0) {
-               
+
                 T nextMessage = encdec.decodeNextByte((byte) read);
-                
+
                 if (nextMessage != null) {
-                    // System.out.println("KAKAKAKAKAKAKKA");
-                    // System.out.println(((StompFrame) nextMessage).toString());
-                    // System.out.println("KAKAKAKAKAKAKKA");
                     protocol.process(nextMessage);
                 }
             }
@@ -54,7 +50,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
             close();
         } catch (IOException ex) {
             ex.printStackTrace();
-        } 
+        }
     }
 
     @Override
@@ -74,7 +70,7 @@ public class BlockingConnectionHandler<T> implements Runnable, ConnectionHandler
         } catch (IOException e) {
             // TODO: handle exception
         }
-       
+
     }
 
     public int getID() {

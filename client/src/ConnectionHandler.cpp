@@ -26,13 +26,11 @@ bool ConnectionHandler::connect() {
 }
 
 bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
-    std::cout << "[DEBUG] Preparing to receive " << bytesToRead << " bytes." << std::endl;
     size_t tmp = 0;
     boost::system::error_code error;
     try {
         while (!error && bytesToRead > tmp) {
             tmp += socket_.read_some(boost::asio::buffer(bytes + tmp, bytesToRead - tmp), error);
-            std::cout << "[DEBUG] Received " << tmp << "/" << bytesToRead << " bytes." << std::endl;
         }
         if (error) {
             std::cerr << "[ERROR] getBytes failed: " << error.message() << std::endl;
@@ -42,7 +40,6 @@ bool ConnectionHandler::getBytes(char bytes[], unsigned int bytesToRead) {
         std::cerr << "[ERROR] Exception in getBytes: " << e.what() << std::endl;
         return false;
     }
-    std::cout << "[DEBUG] Bytes received successfully." << std::endl;
     return true;
 }
 
