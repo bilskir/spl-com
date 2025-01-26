@@ -1,3 +1,4 @@
+
 #include "../include/StompProtocol.h"
 #include <sstream>
 #include <fstream>
@@ -182,13 +183,23 @@ std::string StompProtocol::parseCommand(const std::string &command) {
         if (mainCommand == "join") {
             std::string channel;
             ss >> channel;
-
-            int subscriptionId = receiptId++;
-            _subscriptions[channel] = subscriptionId;
-
+            int subscriptionID;
+            try
+            {
+                subscriptionID = _subscriptions.at(channel);
+                std::cout << "User is already subscribed to this channel" << std::endl;
+                return frame;
+            }
+            catch(const std::exception& e)
+            {
+                subscriptionID = receiptId++;
+                _subscriptions[channel] = subscriptionID;
+            }
+            
+            
             frame += "SUBSCRIBE\n";
-            frame += "destination:/" + channel + "\n";
-            frame += "id:" + std::to_string(subscriptionId) + "\n";
+            frame += "destination:" + channel + "\n";
+            frame += "id:" + std::to_string(subscriptionID) + "\n";
             frame += "receipt:" + std::to_string(receiptId++) + "\n";
             //frame += "\0";
              std::cout << "[DEBUG] State Change: _isConnected=false, _isLoggedIn=false" << std::endl;

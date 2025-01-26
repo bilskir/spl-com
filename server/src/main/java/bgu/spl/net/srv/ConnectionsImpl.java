@@ -121,6 +121,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
                 }
             }
         } finally{
+
             lock.writeLock().unlock();
         }
     }
@@ -175,7 +176,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
             return 1;
 
         } finally {
-            // printChannelMap();
+            printChannelMap();
             lock.writeLock().unlock();
         }        
     }
@@ -197,7 +198,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
                 } 
             }
         } finally {
-            // System.out.println(channelsMap);
+            printChannelMap();
             lock.writeLock().unlock();
         }        
     }
@@ -220,7 +221,7 @@ public class ConnectionsImpl<T> implements Connections<T>{
         }
         // System.out.println(activeUsers);
         unsubscribeChannel(connectionId);
-        // printChannelMap();
+        printChannelMap();
     }
 
     public void printChannelMap(){

@@ -33,7 +33,6 @@ private:
     int receiptId;                                        // Counter for receipt IDs
     int logoutId;                                         // ID to keep logout receipt id
     std::thread _responseThread;                          // Thread to handle server responses
-    std::map<int, std::string> requestsMap;               // Save requests by the ID
     std::unordered_map<std::string, int> _subscriptions;  // Map of channel name to subscription ID
     std::unordered_map<std::string, std::unordered_map<std::string, std::vector<Event>>> _events; // Map of events by channel and user
 };
